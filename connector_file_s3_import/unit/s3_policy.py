@@ -47,32 +47,32 @@ class S3FileGetterPolicy(FileGetterPolicy):
     @staticmethod
     def _ask_files(access_key, secret_access_key, bucket_name,
                    s3_input_folder):
-        with S3Connection(
+        s3 = S3Connection(
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_access_key
-        ) as s3:
-            s3_bucket = s3.get_bucket(bucket_name)
-            for s3_key in s3_bucket.list(s3_input_folder):
-                yield (s3_key.name, '')
+        )
+        s3_bucket = s3.get_bucket(bucket_name)
+        for s3_key in s3_bucket.list(s3_input_folder):
+            yield (s3_key.name, '')
 
     def ask_files(self):
         """Return a generator of S3 objects"""
         return self._ask_files(
-            self.backend_record.access_key,
-            self.backend_record.secret_access_key,
-            self.backend_record.bucket_name,
+            self.backend_record.s3_access_key,
+            self.backend_record.s3_secret_access_key,
+            self.backend_record.s3_bucket_name,
             self.backend_record.s3_input_folder)
 
     @staticmethod
     def _get_content(data_file_name, access_key, secret_access_key,
                      bucket_name):
-        with S3Connection(
+        s3 = S3Connection(
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_access_key
-        ) as s3:
-            s3_bucket = s3.get_bucket(bucket_name)
-            s3_key = s3_bucket.get_key(data_file_name)
-            return s3_key.get_contents_as_string()
+        )
+        s3_bucket = s3.get_bucket(bucket_name)
+        s3_key = s3_bucket.get_key(data_file_name)
+        return s3_key.get_contents_as_string()
 
     def get_hash(self, hash_file_name):
         """Return the external hash of the file."""
@@ -82,9 +82,9 @@ class S3FileGetterPolicy(FileGetterPolicy):
         """Return the raw content of the file."""
         return self._get_content(
             data_file_name,
-            self.backend_record.access_key,
-            self.backend_record.secret_access_key,
-            self.backend_record.bucket_name)
+            self.backend_record.s3_access_key,
+            self.backend_record.s3_secret_access_key,
+            self.backend_record.s3_bucket_name)
 
     def manage_exception(self, e, data_file_name, hash_file_name):
         """In case of trouble, try to move the file away."""
@@ -143,9 +143,9 @@ class S3FileGetterPolicy(FileGetterPolicy):
     def move_one(self, file_name, folder_from, folder_to):
         """Move a file. Return whatever comes from the library."""
         return self._move_one(
-            self.backend_record.access_key,
-            self.backend_record.secret_access_key,
-            self.backend_record.bucket_name,
+            self.backend_record.s3_access_key,
+            self.backend_record.s3_secret_access_key,
+            self.backend_record.s3_bucket_name,
             file_name,
             folder_from,
             folder_to)
@@ -153,15 +153,15 @@ class S3FileGetterPolicy(FileGetterPolicy):
     @staticmethod
     def _move_one(access_key, secret_access_key, bucket_name,
                   file_name, folder_from, folder_to):
-        with S3Connection(
+        s3 = S3Connection(
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_access_key
-        ) as s3:
-            s3_bucket = s3.get_bucket(bucket_name)
-            # Bucket name must be in copy_source
-            s3_key = s3_bucket.get_key(file_name)
-            new_file_name = file_name.replace(folder_from, folder_to)
+        )
+        s3_bucket = s3.get_bucket(bucket_name)
+        # Bucket name must be in copy_source
+        s3_key = s3_bucket.get_key(file_name)
+        new_file_name = file_name.replace(folder_from, folder_to)
 
-            # Copy object in new folder + remove old _move_one
-            s3_bucket.copy_key(new_file_name, bucket_name, s3_key)
-            s3_bucket.delete_key(s3_key)
+        # Copy object in new folder + remove old _move_one
+        s3_bucket.copy_key(new_file_name, bucket_name, s3_key)
+        s3_bucket.delete_key(s3_key)

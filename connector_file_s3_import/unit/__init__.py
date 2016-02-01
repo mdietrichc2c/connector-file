@@ -19,4 +19,5 @@
 #
 ##############################################################################
 """Overridden Units."""
+from . import document  # noqa
 from . import s3_policy  # noqa

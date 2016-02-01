@@ -26,6 +26,7 @@ from openerp.osv import orm, fields
 
 class file_import_s3_backend(orm.Model):
     """ Specific S3 version of the file import backend """
+    _name = "file_import.backend"
     _inherit = "file_import.backend"
 
     def _select_versions(self, cr, uid, context=None):
@@ -41,7 +42,7 @@ class file_import_s3_backend(orm.Model):
         's3_access_key': fields.char('Amazon S3 Access Key'),
         's3_secret_access_key': fields.char('Amazon S3 Secret Access Key'),
         's3_bucket_name': fields.char('Amazon S3 Bucket Name'),
-        's3_input_folder': fields.char('FTP Input folder'),
-        's3_failed_folder': fields.char('FTP Output folder'),
-        's3_archive_folder': fields.char('FTP Archive folder'),
+        's3_input_folder': fields.char('S3 Input folder'),
+        's3_failed_folder': fields.char('S3 Failed folder'),
+        's3_archive_folder': fields.char('S3 Archive folder'),
     }
